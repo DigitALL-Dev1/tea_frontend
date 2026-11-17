@@ -1,0 +1,55 @@
+import type { TeaSettings } from "@/types";
+
+export const MOCK_SETTINGS: TeaSettings = {
+  keywords: [
+    "solar",
+    "photovoltaic",
+    "ICT equipment",
+    "laptops",
+    "network",
+    "LAN",
+    "wireless",
+    "data centre",
+    "training",
+    "cold chain",
+  ],
+  countries: ["Papua New Guinea", "Fiji", "Solomon Islands", "Vanuatu", "Zimbabwe"],
+  agencies: ["FAO", "UNDP", "UNICEF", "UNOPS", "WHO", "UNFPA", "IOM"],
+  weights: { scopeFit: 35, countryFit: 20, agencyHistory: 15, valueSize: 10, timeToPrepare: 20 },
+  minPreparationDays: 7,
+  marginWarningPct: 25,
+  dataSources: [
+    {
+      id: "ds-ungm-api",
+      name: "UNGM notices API",
+      kind: "API",
+      health: "OK",
+      lastSyncAt: "2026-11-16T09:45:00Z",
+      detail: "Polled every 30 minutes · 412 notices scanned today",
+    },
+    {
+      id: "ds-ungm-mail",
+      name: "UNGM alert mailbox",
+      kind: "EMAIL",
+      health: "OK",
+      lastSyncAt: "2026-11-16T09:30:00Z",
+      detail: "tenders@green.com.pg · 3 alerts parsed today",
+    },
+    {
+      id: "ds-docs",
+      name: "Document store",
+      kind: "STORAGE",
+      health: "OK",
+      lastSyncAt: "2026-11-16T09:40:00Z",
+      detail: "SHA-256 recorded for every file on upload",
+    },
+    {
+      id: "ds-ai",
+      name: "AI drafting agents",
+      kind: "AI",
+      health: "DEGRADED",
+      lastSyncAt: "2026-11-16T08:55:00Z",
+      detail: "Responses slower than usual (avg 41s per section)",
+    },
+  ],
+};
