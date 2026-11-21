@@ -12,6 +12,8 @@ import {
   getTender,
   getTenders,
   getUsers,
+  searchUngmTenders,
+  type UngmSearchFilters,
 } from "@/services";
 import { useRole } from "@/components/tea/role-context";
 
@@ -56,6 +58,20 @@ export function useUsers() {
 
 export function useSuppliers() {
   return useQuery({ queryKey: teaKeys.suppliers, queryFn: getSuppliers, staleTime: 60_000 });
+}
+
+/**
+ * Live UNGM search via the backend. Keyed outside "tea" on purpose: TEA action invalidations
+ * must not re-trigger a slow scrape. Pass null to stay idle until the user searches.
+ */
+export function useUngmTenders(filters: UngmSearchFilters | null) {
+  return useQuery({
+    queryKey: ["ungm", "tenders", filters] as const,
+    queryFn: ({ signal }) => searchUngmTenders(filters!, signal),
+    enabled: filters !== null,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
 }
 
 /** Map of user id → name, for display. */

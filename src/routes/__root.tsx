@@ -7,8 +7,10 @@ import {
   HeadContent,
   Scripts,
   type ErrorComponentProps,
+  useNavigate,
+  useRouterState,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -16,6 +18,8 @@ import { RoleProvider } from "@/components/tea/role-context";
 import { AppShell } from "@/components/tea/app-shell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getCurrentUserInfo, isAuthenticated } from "@/services/auth";
+import { Loader2 } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -136,13 +140,63 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <RoleProvider>
         <TooltipProvider delayDuration={200}>
-          <AppShell>
-            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-            <Outlet />
-          </AppShell>
+          <AuthenticatedShell />
           <Toaster position="top-center" richColors closeButton />
         </TooltipProvider>
       </RoleProvider>
     </QueryClientProvider>
+  );
+}
+
+/**
+ * Login gate: every page except /login needs a valid session.
+ * The token is confirmed with the backend before any module is shown.
+ */
+function AuthenticatedShell() {
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (st) => st.location.pathname });
+  const [status, setStatus] = useState<"checking" | "in" | "out">("checking");
+
+  // Verify the stored token once per page load
+  useEffect(() => {
+    let cancelled = false;
+    if (!isAuthenticated()) {
+      setStatus("out");
+      return;
+    }
+    getCurrentUserInfo()
+      .then((user) => !cancelled && setStatus(user ? "in" : "out"))
+      .catch(() => !cancelled && setStatus("out"));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Send logged-out users to /login, and logged-in users away from it
+  useEffect(() => {
+    if (status === "checking") return;
+    const onLogin = pathname === "/login";
+    if (status === "out" && !onLogin) void navigate({ to: "/login", replace: true });
+    if (status === "in" && onLogin) void navigate({ to: "/", replace: true });
+  }, [status, pathname, navigate]);
+
+  const onLogin = pathname === "/login";
+  if (status === "out") return onLogin ? <Outlet /> : <FullPageLoader />;
+  if (status === "in" && !onLogin) {
+    return (
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    );
+  }
+  return <FullPageLoader />;
+}
+
+function FullPageLoader() {
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background" role="status">
+      <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+      <span className="sr-only">Loading…</span>
+    </div>
   );
 }

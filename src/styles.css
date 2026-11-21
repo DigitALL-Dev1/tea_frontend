@@ -187,3 +187,39 @@
     color: var(--color-foreground);
   }
 }
+
+/* ---------- Proposal editor (TipTap) – Word-like page ---------- */
+.proposal-doc {
+  outline: none;
+  font-family: Calibri, "Segoe UI", Arial, sans-serif;
+  font-size: 11pt;
+  line-height: 1.6;
+  min-height: 50vh;
+}
+.proposal-doc > * + * { margin-top: 0.6em; }
+.proposal-doc h1 { font-size: 1.75rem; font-weight: 700; line-height: 1.25; margin-bottom: 0.5em; }
+.proposal-doc h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1.4em; }
+.proposal-doc h3 { font-size: 1.05rem; font-weight: 700; margin-top: 1.1em; }
+.proposal-doc ul { list-style: disc; padding-left: 1.5em; }
+.proposal-doc ol { list-style: decimal; padding-left: 1.5em; }
+.proposal-doc li > p { margin: 0; }
+.proposal-doc blockquote { border-left: 3px solid #cbd5e1; padding-left: 1em; color: #475569; }
+.proposal-doc hr { border: none; border-top: 1px solid #cbd5e1; margin: 1.2em 0; }
+.proposal-doc mark { background: #fff59d; padding: 0 1px; }
+.proposal-doc a { color: #2563eb; text-decoration: underline; }
+.proposal-doc em { color: inherit; }
+.proposal-doc table { border-collapse: collapse; width: 100%; table-layout: fixed; overflow: hidden; }
+.proposal-doc th, .proposal-doc td {
+  border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: top; text-align: left; position: relative;
+}
+.proposal-doc th { background: #f1f5f9; font-weight: 600; }
+.proposal-doc .selectedCell::after {
+  content: ""; position: absolute; inset: 0; background: rgb(59 130 246 / 0.15); pointer-events: none;
+}
+.proposal-doc .column-resize-handle {
+  position: absolute; right: -2px; top: 0; bottom: 0; width: 4px; background: #3b82f6; pointer-events: none;
+}
+.proposal-doc.resize-cursor { cursor: col-resize; }
+.proposal-doc p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); color: #94a3b8; float: left; height: 0; pointer-events: none;
+}

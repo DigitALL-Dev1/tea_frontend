@@ -11,7 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApprovalsRouteImport } from './routes/approvals'
+import { Route as ApprovedTendersRouteImport } from './routes/approved-tenders'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AiTendersIndexRouteImport } from './routes/ai-tenders/index'
+import { Route as AiTendersAiTenderIdRouteImport } from './routes/ai-tenders/$aiTenderId'
 import { Route as TendersIndexRouteImport } from './routes/tenders/index'
 import { Route as TendersTenderIdRouteImport } from './routes/tenders/$tenderId'
 
@@ -25,9 +29,29 @@ const ApprovalsRoute = ApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApprovedTendersRoute = ApprovedTendersRouteImport.update({
+  id: '/approved-tenders',
+  path: '/approved-tenders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiTendersIndexRoute = AiTendersIndexRouteImport.update({
+  id: '/ai-tenders/',
+  path: '/ai-tenders/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AiTendersAiTenderIdRoute = AiTendersAiTenderIdRouteImport.update({
+  id: '/ai-tenders/$aiTenderId',
+  path: '/ai-tenders/$aiTenderId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TendersIndexRoute = TendersIndexRouteImport.update({
@@ -44,45 +68,82 @@ const TendersTenderIdRoute = TendersTenderIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
+  '/approved-tenders': typeof ApprovedTendersRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/ai-tenders/$aiTenderId': typeof AiTendersAiTenderIdRoute
   '/tenders/$tenderId': typeof TendersTenderIdRoute
+  '/ai-tenders/': typeof AiTendersIndexRoute
   '/tenders/': typeof TendersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
+  '/approved-tenders': typeof ApprovedTendersRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/ai-tenders/$aiTenderId': typeof AiTendersAiTenderIdRoute
   '/tenders/$tenderId': typeof TendersTenderIdRoute
+  '/ai-tenders': typeof AiTendersIndexRoute
   '/tenders': typeof TendersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/approvals': typeof ApprovalsRoute
+  '/approved-tenders': typeof ApprovedTendersRoute
+  '/login': typeof LoginRoute
   '/settings': typeof SettingsRoute
+  '/ai-tenders/$aiTenderId': typeof AiTendersAiTenderIdRoute
   '/tenders/$tenderId': typeof TendersTenderIdRoute
+  '/ai-tenders/': typeof AiTendersIndexRoute
   '/tenders/': typeof TendersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/approvals' | '/settings' | '/tenders/$tenderId' | '/tenders/'
+    | '/'
+    | '/approvals'
+    | '/approved-tenders'
+    | '/login'
+    | '/settings'
+    | '/ai-tenders/$aiTenderId'
+    | '/tenders/$tenderId'
+    | '/ai-tenders/'
+    | '/tenders/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/approvals' | '/settings' | '/tenders/$tenderId' | '/tenders'
+  to:
+    | '/'
+    | '/approvals'
+    | '/approved-tenders'
+    | '/login'
+    | '/settings'
+    | '/ai-tenders/$aiTenderId'
+    | '/tenders/$tenderId'
+    | '/ai-tenders'
+    | '/tenders'
   id:
     | '__root__'
     | '/'
     | '/approvals'
+    | '/approved-tenders'
+    | '/login'
     | '/settings'
+    | '/ai-tenders/$aiTenderId'
     | '/tenders/$tenderId'
+    | '/ai-tenders/'
     | '/tenders/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ApprovalsRoute: typeof ApprovalsRoute
+  ApprovedTendersRoute: typeof ApprovedTendersRoute
+  LoginRoute: typeof LoginRoute
   SettingsRoute: typeof SettingsRoute
+  AiTendersAiTenderIdRoute: typeof AiTendersAiTenderIdRoute
   TendersTenderIdRoute: typeof TendersTenderIdRoute
+  AiTendersIndexRoute: typeof AiTendersIndexRoute
   TendersIndexRoute: typeof TendersIndexRoute
 }
 
@@ -102,11 +163,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/approved-tenders': {
+      id: '/approved-tenders'
+      path: '/approved-tenders'
+      fullPath: '/approved-tenders'
+      preLoaderRoute: typeof ApprovedTendersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-tenders/': {
+      id: '/ai-tenders/'
+      path: '/ai-tenders'
+      fullPath: '/ai-tenders/'
+      preLoaderRoute: typeof AiTendersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ai-tenders/$aiTenderId': {
+      id: '/ai-tenders/$aiTenderId'
+      path: '/ai-tenders/$aiTenderId'
+      fullPath: '/ai-tenders/$aiTenderId'
+      preLoaderRoute: typeof AiTendersAiTenderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tenders/': {
@@ -129,8 +218,12 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ApprovalsRoute: ApprovalsRoute,
+  ApprovedTendersRoute: ApprovedTendersRoute,
+  LoginRoute: LoginRoute,
   SettingsRoute: SettingsRoute,
+  AiTendersAiTenderIdRoute: AiTendersAiTenderIdRoute,
   TendersTenderIdRoute: TendersTenderIdRoute,
+  AiTendersIndexRoute: AiTendersIndexRoute,
   TendersIndexRoute: TendersIndexRoute,
 }
 export const routeTree = rootRouteImport

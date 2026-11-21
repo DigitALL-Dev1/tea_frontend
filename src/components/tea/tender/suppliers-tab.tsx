@@ -96,7 +96,7 @@ export function SuppliersTab({ tender: t }: { tender: Tender }) {
                 tender={t}
                 email={e}
                 onDecide={() =>
-                  void navigate({ to: "/approvals", search: { item: `${t.id}:GC:${e.id}` } })
+                  void navigate({ to: "/approvals" })
                 }
               />
             ))}

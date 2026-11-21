@@ -1,6 +1,5 @@
 /**
- * Demo role switcher state. No real login: the chosen demo user is remembered in
- * localStorage and passed to the mock services. The backend will replace this with auth.
+ * Authentication and role context with real backend authentication.
  */
 import {
   createContext,
@@ -13,6 +12,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getCurrentUser, switchDemoUser } from "@/services";
+import { getStoredAuth, logout as apiLogout, getCurrentUserInfo } from "@/services/auth";
 import type { DemoUser, UserRole } from "@/types";
 
 const STORAGE_KEY = "tea.demoUserId";
@@ -21,6 +21,9 @@ interface RoleContextValue {
   user: DemoUser;
   setUserId: (id: string) => void;
   is: (role: UserRole) => boolean;
+  isAuthenticated: boolean;
+  username: string | null;
+  logout: () => Promise<void>;
 }
 
 const RoleContext = createContext<RoleContextValue | null>(null);
@@ -28,8 +31,27 @@ const RoleContext = createContext<RoleContextValue | null>(null);
 export function RoleProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const [user, setUser] = useState<DemoUser>(() => getCurrentUser());
+  const [authUsername, setAuthUsername] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check for real authentication first
+    const auth = getStoredAuth();
+    if (auth) {
+      setAuthUsername(auth.username);
+      // Verify token is still valid
+      getCurrentUserInfo().then((userInfo) => {
+        if (!userInfo) {
+          // Token expired or invalid
+          setAuthUsername(null);
+          // Redirect to login will be handled by the router
+        }
+      }).catch(() => {
+        setAuthUsername(null);
+      });
+      return;
+    }
+
+    // Fall back to demo mode if no auth
     let stored: string | null = null;
     try {
       stored = window.localStorage.getItem(STORAGE_KEY);
@@ -47,6 +69,14 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     // Run once on mount only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const logout = useCallback(async () => {
+    await apiLogout();
+    setAuthUsername(null);
+    void qc.invalidateQueries({ queryKey: ["tea"] });
+    // Force page reload to clear all state
+    window.location.href = "/login";
+  }, [qc]);
 
   const setUserId = useCallback(
     (id: string) => {
@@ -66,8 +96,15 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<RoleContextValue>(
-    () => ({ user, setUserId, is: (role) => user.role === role }),
-    [user, setUserId],
+    () => ({ 
+      user, 
+      setUserId, 
+      is: (role) => user.role === role,
+      isAuthenticated: authUsername !== null,
+      username: authUsername,
+      logout,
+    }),
+    [user, setUserId, authUsername, logout],
   );
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;
 }

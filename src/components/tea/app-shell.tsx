@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, FileStack, CheckSquare, Settings, UserCircle2 } from "lucide-react";
+import { LayoutDashboard, FileStack, CheckSquare, BadgeCheck, Sparkles, Settings, UserCircle2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Select,
@@ -9,17 +9,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMyApprovals } from "@/hooks/use-tea";
+import { Button } from "@/components/ui/button";
+import { getMyBidRequests } from "@/services/bid-requests";
 import { ROLE_LABEL, useRole } from "./role-context";
 import { getCurrentUser } from "@/services";
 import { useQuery } from "@tanstack/react-query";
 import { getDemoUsers } from "@/services";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/tenders", label: "Tenders", icon: FileStack, exact: false },
-  { to: "/approvals", label: "Approvals", icon: CheckSquare, exact: false },
-  { to: "/settings", label: "Settings", icon: Settings, exact: false },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true, hideFor: [] as string[], showFor: null },
+  { to: "/tenders", label: "Tenders", icon: FileStack, exact: false, hideFor: [] as string[], showFor: null },
+  { to: "/approved-tenders", label: "Approved Tenders", icon: BadgeCheck, exact: false, hideFor: [] as string[], showFor: ["kowsalya"] as string[] },
+  { to: "/ai-tenders", label: "AI Processing", icon: Sparkles, exact: false, hideFor: [] as string[], showFor: ["kowsalya"] as string[] },
+  { to: "/approvals", label: "Approvals", icon: CheckSquare, exact: false, hideFor: ["kowsalya"] as string[], showFor: null },
+  { to: "/settings", label: "Settings", icon: Settings, exact: false, hideFor: [] as string[], showFor: null },
 ] as const;
 
 function useActive() {
@@ -28,9 +31,17 @@ function useActive() {
     exact ? path === to : path === to || path.startsWith(`${to}/`);
 }
 
+/** Number of bid requests waiting for the logged-in user's decision (from the backend). */
 function ApprovalCount({ className }: { className?: string }) {
-  const { data } = useMyApprovals();
-  const n = data?.filter((p) => !p.blockedReason).length ?? 0;
+  const { isAuthenticated } = useRole();
+  const { data } = useQuery({
+    // Shares the "bid-requests" prefix, so approving/rejecting refreshes the badge
+    queryKey: ["bid-requests", "received"],
+    queryFn: () => getMyBidRequests("received"),
+    enabled: isAuthenticated,
+    refetchInterval: 30_000,
+  });
+  const n = data?.filter((r) => r.bid_status === "pending").length ?? 0;
   if (!n) return null;
   return (
     <span
@@ -77,13 +88,39 @@ function Logo({ dark }: { dark?: boolean }) {
 }
 
 function RoleSwitcher() {
-  const { user, setUserId } = useRole();
+  const { user, setUserId, isAuthenticated, username, logout: handleLogout } = useRole();
   const { data: users } = useQuery({
     queryKey: ["tea", "demo-users"],
     queryFn: getDemoUsers,
     staleTime: Infinity,
   });
   const list = users ?? [getCurrentUser()];
+
+  // If authenticated with real backend, show username and logout
+  if (isAuthenticated && username) {
+    return (
+      <div className="flex items-center gap-2">
+        <span className="flex items-center gap-2">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            {username.substring(0, 2).toUpperCase()}
+          </span>
+          <span className="hidden font-medium sm:inline">{username}</span>
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => void handleLogout()}
+          className="h-9"
+          title="Logout"
+        >
+          <LogOut className="size-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </Button>
+      </div>
+    );
+  }
+
+  // Demo mode - show role switcher
   return (
     <div className="flex items-center gap-2">
       <span className="hidden text-xs text-muted-foreground sm:inline">Acting as</span>
@@ -124,7 +161,15 @@ function RoleSwitcher() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const isActive = useActive();
-  const { user } = useRole();
+  const { user, isAuthenticated, username } = useRole();
+
+  // Filter navigation items based on authenticated username
+  const visibleNav = NAV.filter(n => {
+    const who = isAuthenticated && username ? username.toLowerCase() : null;
+    if (n.showFor && (!who || !n.showFor.includes(who))) return false;
+    if (who && n.hideFor.includes(who)) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -134,7 +179,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Logo dark />
         </div>
         <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Main">
-          {NAV.map((n) => {
+          {visibleNav.map((n) => {
             const active = isActive(n.to, n.exact);
             return (
               <Link
@@ -156,9 +201,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </nav>
         <div className="border-t border-sidebar-border px-5 py-4 text-[11px] leading-relaxed text-sidebar-muted">
           <p className="flex items-center gap-1.5 font-medium text-sidebar-foreground">
-            <UserCircle2 className="size-3.5" /> {user.name}
+            <UserCircle2 className="size-3.5" />
+            {isAuthenticated && username ? username : user.name}
           </p>
-          <p>{user.title}</p>
+          <p>{isAuthenticated && username ? "Authenticated User" : user.title}</p>
         </div>
       </aside>
 
@@ -177,10 +223,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom nav */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid border-t bg-background pb-[env(safe-area-inset-bottom)] lg:hidden"
+        style={{ gridTemplateColumns: `repeat(${visibleNav.length}, minmax(0, 1fr))` }}
         aria-label="Main"
       >
-        {NAV.map((n) => {
+        {visibleNav.map((n) => {
           const active = isActive(n.to, n.exact);
           return (
             <Link
