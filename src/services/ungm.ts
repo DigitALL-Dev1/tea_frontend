@@ -1,12 +1,12 @@
 /**
  * Live UNGM tender search, served by the TEA backend (tea_backend/api/get_tender.py).
  * Unlike the rest of src/services this is NOT mock data: it calls GET /api/v1/tenders.
- * Set VITE_API_BASE_URL to point at the backend (default http://127.0.0.1:8001).
+ * The backend URL is configured in ./api-config.ts (VITE_API_BASE_URL).
  */
 
-export const API_BASE_URL = (
-  (import.meta.env?.["VITE_API_BASE_URL"] as string | undefined) ?? "http://127.0.0.1:8001"
-).replace(/\/+$/, "");
+import { API_BASE_URL } from "./api-config";
+
+export { API_BASE_URL };
 
 export interface UngmTender {
   notice_id: string;

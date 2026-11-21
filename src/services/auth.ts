@@ -2,7 +2,9 @@
  * Authentication service - connects to the backend auth API
  */
 
-const API_BASE = "http://127.0.0.1:8001/api/v1";
+import { API_BASE_URL } from "./api-config";
+
+const API_BASE = `${API_BASE_URL}/api/v1`;
 
 interface LoginRequest {
   username: string;

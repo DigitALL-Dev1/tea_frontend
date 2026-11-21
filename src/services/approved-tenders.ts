@@ -4,7 +4,7 @@
  */
 
 import { getStoredAuth } from "./auth";
-import { API_BASE_URL } from "./ungm";
+import { API_BASE_URL } from "./api-config";
 
 const API_BASE = `${API_BASE_URL}/api/v1/approved-tenders`;
 

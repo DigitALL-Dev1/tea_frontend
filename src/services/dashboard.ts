@@ -3,7 +3,7 @@
  */
 
 import { getStoredAuth } from "./auth";
-import { API_BASE_URL } from "./ungm";
+import { API_BASE_URL } from "./api-config";
 
 export interface DashboardRequest {
   id: number;
